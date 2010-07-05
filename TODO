@@ -1,0 +1,48 @@
+# -*- mode: org; -*-
+* DONE test
+  CLOSED: [2010-07-05 Mon 15:43]
+  #+BEGIN_SRC scheme
+    (load "auth.scm")
+    (use auth
+         call-with-connection
+         debug
+         test)
+    
+    (call-with-connection
+     "auth.db"
+     (lambda (connection)
+       (create connection "user" "pass" "realm")
+       (test-assert
+        "retrieve with credentials"
+        (read connection "user" "pass" "realm"))
+       (test-assert
+        "false user"
+        (not (read connection "false-user" "pass" "realm")))
+       (test-assert
+        "false pass"
+        (not (read connection "user" "false-pass" "realm")))
+       (test-assert
+        "false realm"
+        (not (read connection "user" "pass" "false-realm")))
+       (update connection "user" "pass2" "realm")
+       (test-assert
+        "retrieve with updated credentials"
+        (read connection "user" "pass2" "realm"))))  
+  #+END_SRC
+* CANCELED it seems like this could be a datagrid app
+  CLOSED: [2010-07-05 Mon 15:43]
+  especially after we write some hooks. that would relieve me from
+  coming up with an interface. we need an interface anyway, though,
+  for users.
+* CANCELED we might as well just use srfi-69 as the database
+  CLOSED: [2010-07-05 Mon 15:43]
+  why do some dumbass sqlite3-thing? what are we indexing by: user?
+  problem is: how do we serialize a srfi-69 hash-table? right: use
+  fucking alists.
+
+  where's our fucking alist-lib, again? jesus, we need that thing.
+
+  oh, shit: on the other hand, we're going to incur this penalty every
+  read! we need something spritely, then. damn; also: usernames are
+  going to have to be unique across domains unless we do something
+  clever. damn, i really don't want to have to program this.
