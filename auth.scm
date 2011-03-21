@@ -2,7 +2,7 @@
  auth
 
  (create
-  read
+  valid?
   update
   delete
   role)
@@ -39,7 +39,7 @@
       connection
       "INSERT INTO auth (user, salt, role, hash) VALUES(?, ?, ?, ?);")))
 
- (define (read connection user password role)
+ (define (valid? connection user password role)
    (sqlite3:call-with-temporary-statements
     (lambda (salt)
       (let ((salt-hash (condition-case
