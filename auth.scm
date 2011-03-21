@@ -4,7 +4,8 @@
  (create
   read
   update
-  delete)
+  delete
+  role)
 
  (import scheme
          chicken
@@ -29,40 +30,49 @@
  (define (hash password salt)
    (sha512-digest (string-append password salt)))
 
- (define (create connection user password realm)
+ (define (create connection user password role)
    (let* ((salt (salt))
           (hash (hash password salt)))
      (sqlite3:call-with-temporary-statements
       (lambda (create)
-        (sqlite3:execute create user salt realm hash))
+        (sqlite3:execute create user salt role hash))
       connection
-      "INSERT INTO auth (user, salt, realm, hash) VALUES(?, ?, ?, ?);")))
+      "INSERT INTO auth (user, salt, role, hash) VALUES(?, ?, ?, ?);")))
 
- (define (read connection user password realm)
+ (define (read connection user password role)
    (sqlite3:call-with-temporary-statements
     (lambda (salt)
       (let ((salt-hash (condition-case
-                        (sqlite3:first-row salt user realm)
+                        (sqlite3:first-row salt user role)
                         ((exn sqlite3) #f))))
         (and salt-hash
              (string=? (cadr salt-hash)
                        (hash password (car salt-hash))))))
     connection
-    "SELECT salt, hash FROM auth WHERE user = ? AND realm = ?;"))
+    "SELECT salt, hash FROM auth WHERE user = ? AND role = ?;"))
 
- ;; can't change realm (makes user unique, etc.)
- (define (update connection user password realm)
+ ;; can't change role (makes user unique, etc.)
+ (define (update connection user password role)
    (let* ((salt (salt))
           (hash (hash password salt)))
      (sqlite3:call-with-temporary-statements
       (lambda (update)
-        (sqlite3:execute update hash salt user realm))
+        (sqlite3:execute update hash salt user role))
       connection
-      "UPDATE auth SET hash = ?, salt = ? WHERE user = ? AND realm = ?")))
+      "UPDATE auth SET hash = ?, salt = ? WHERE user = ? AND role = ?")))
 
- (define (delete connection user realm)
+ (define (delete connection user role)
    (sqlite3:call-with-temporary-statements
     (lambda (delete)
-      (sqlite3:execute delete user realm))
+      (sqlite3:execute delete user role))
     connection
-    "DELETE FROM auth WHERE user = ? AND realm = ?;")))
+    "DELETE FROM auth WHERE user = ? AND role = ?;"))
+
+ (define (role connection user)
+   (sqlite3:call-with-temporary-statements
+    (lambda (role)
+      (condition-case
+       (sqlite3:first-row role user)
+       ((exn sqlite3) #f)))
+    connection
+    "SELECT role FROM auth WHERE user = ?;")))

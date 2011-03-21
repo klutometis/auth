@@ -3,6 +3,6 @@ CREATE TABLE auth (
        id INTEGER PRIMARY KEY AUTOINCREMENT,
        user TEXT KEY,
        salt TEXT,
-       realm TEXT,
+       role TEXT,
        hash TEXT
 );
