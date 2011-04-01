@@ -1,4 +1,33 @@
 # -*- mode: org; -*-
+* TODO add timestamp
+  #+BEGIN_SRC sqlite :tangle add-timestamp.sql
+    CREATE TEMPORARY TABLE add_timestamp (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           user TEXT KEY,
+           salt TEXT,
+           role TEXT,
+           hash TEXT
+    );
+    INSERT INTO add_timestamp SELECT * FROM auth;
+    
+    DROP TABLE IF EXISTS auth;
+    CREATE TABLE auth (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           user TEXT KEY,
+           salt TEXT,
+           role TEXT,
+           hash TEXT,
+           timestamp INTEGER DEFAULT (strftime('%s', 'now'))
+    );
+    
+    INSERT INTO auth (id, user, salt, role, hash) SELECT
+           id,
+           user,
+           salt,
+           role,
+           hash
+           FROM add_timestamp;
+  #+END_SRC
 * DONE test
   CLOSED: [2010-07-05 Mon 15:43]
   #+BEGIN_SRC scheme
