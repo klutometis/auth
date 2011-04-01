@@ -1,5 +1,6 @@
 # -*- mode: org; -*-
-* TODO add timestamp
+* DONE add timestamp
+  CLOSED: [2011-03-31 Thu 19:50]
   #+BEGIN_SRC sqlite :tangle add-timestamp.sql
     CREATE TEMPORARY TABLE add_timestamp (
            id INTEGER PRIMARY KEY AUTOINCREMENT,
