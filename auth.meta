@@ -1,7 +1,9 @@
 ((egg "auth.egg")
  (license "GPL-3")
  (category databases)
- (needs setup-helper sqlite3 sha2)
+ (needs setup-helper
+        sqlite3
+        sha2)
  (test-depends test
                files
                call-with-sqlite3-connection
