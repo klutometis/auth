@@ -5,7 +5,8 @@
   valid?
   update
   delete
-  role)
+  role
+  timestamp)
 
  (import scheme
          chicken
@@ -59,6 +60,9 @@
       (lambda (update)
         (sqlite3:execute update hash salt user role))
       connection
+      ;; we're relying on an implicit update trigger to update the
+      ;; timestamp (i'm not sure if i like this mixture of data and
+      ;; programming).
       "UPDATE auth SET hash = ?, salt = ? WHERE user = ? AND role = ?")))
 
  (define (delete connection user role)
@@ -72,7 +76,16 @@
    (sqlite3:call-with-temporary-statements
     (lambda (role)
       (condition-case
-       (sqlite3:first-row role user)
+       (sqlite3:first-result role user)
        ((exn sqlite3) #f)))
     connection
-    "SELECT role FROM auth WHERE user = ?;")))
+    "SELECT role FROM auth WHERE user = ?;"))
+
+ (define (timestamp connection user)
+   (sqlite3:call-with-temporary-statements
+    (lambda (role)
+      (condition-case
+       (sqlite3:first-result role user)
+       ((exn sqlite3) #f)))
+    connection
+    "SELECT timestamp FROM auth WHERE user = ?;")))

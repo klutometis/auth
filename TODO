@@ -1,4 +1,37 @@
 # -*- mode: org; -*-
+* DONE yes, the database is itself a "realm"?
+  CLOSED: [2011-04-05 Tue 17:54]
+  and that's how we'd handle multiple users with identical names?
+* DONE test behavior of timestamp and NULL
+  CLOSED: [2011-04-05 Tue 16:20]
+  - CLOSING NOTE [2011-04-05 Tue 16:21] \\
+    can do it using a trigger; but have to specify the timestamp,
+    nevertheless (simply updating it with NULL does not trigger a
+    recalculation of the DEFAULT).
+  #+BEGIN_SRC sqlite :tangle test-null-timestamp.sql
+    DROP TABLE IF EXISTS test;
+    CREATE TABLE test (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           payload,
+           timestamp INTEGER DEFAULT (strftime('%s', 'now')) NOT NULL
+    );
+    
+    CREATE TRIGGER update_timestamp UPDATE ON test
+           BEGIN
+            UPDATE test SET timestamp = strftime('%s', 'now')
+            WHERE rowid = new.rowid;
+           END;
+    
+    INSERT INTO test(id) values(NULL);
+    INSERT INTO test(id) values(NULL);
+    SELECT timestamp FROM test;
+    
+  #+END_SRC
+
+  #+BEGIN_SRC sqlite :tangle test-null-timestamp-after-sleep.sql
+    UPDATE test SET payload = 'omg' where ID = 1;
+    SELECT timestamp FROM test;
+  #+END_SRC
 * DONE add timestamp
   CLOSED: [2011-03-31 Thu 19:50]
   #+BEGIN_SRC sqlite :tangle add-timestamp.sql

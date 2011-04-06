@@ -7,3 +7,9 @@ CREATE TABLE auth (
        hash TEXT,
        timestamp INTEGER DEFAULT (strftime('%s', 'now'))
 );
+
+CREATE TRIGGER update_timestamp UPDATE ON auth
+    BEGIN
+       UPDATE auth SET timestamp = strftime('%s', 'now')
+       WHERE rowid = new.rowid;
+    END;

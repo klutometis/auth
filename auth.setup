@@ -3,3 +3,5 @@
 (setup-shared-extension-module
  'auth
  (extension-version 0.1))
+
+(copy-to-home "auth.sql")
