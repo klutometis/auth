@@ -1,4 +1,5 @@
 # -*- mode: org; -*-
+* TODO add some kind of unique constraint on the usernames
 * DONE yes, the database is itself a "realm"?
   CLOSED: [2011-04-05 Tue 17:54]
   and that's how we'd handle multiple users with identical names?
