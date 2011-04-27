@@ -6,7 +6,8 @@
   update
   delete
   role
-  timestamp)
+  timestamp
+  create-or-update)
 
  (import scheme
          chicken
@@ -31,15 +32,6 @@
  (define (hash password salt)
    (sha512-digest (string-append password salt)))
 
- (define (create connection user password role)
-   (let* ((salt (salt))
-          (hash (hash password salt)))
-     (sqlite3:call-with-temporary-statements
-      (lambda (create)
-        (sqlite3:execute create user salt role hash))
-      connection
-      "INSERT INTO auth (user, salt, role, hash) VALUES(?, ?, ?, ?);")))
-
  (define (valid? connection user password role)
    (sqlite3:call-with-temporary-statements
     (lambda (salt)
@@ -52,18 +44,18 @@
     connection
     "SELECT salt, hash FROM auth WHERE user = ? AND role = ?;"))
 
- ;; can't change role (makes user unique, etc.)
- (define (update connection user password role)
+ (define create create-or-update)
+
+ (define update create-or-update)
+
+ (define (create-or-update connection user password role)
    (let* ((salt (salt))
           (hash (hash password salt)))
      (sqlite3:call-with-temporary-statements
-      (lambda (update)
-        (sqlite3:execute update hash salt user role))
+      (lambda (create-or-update)
+        (sqlite3:execute create-or-update user salt role hash))
       connection
-      ;; we're relying on an implicit update trigger to update the
-      ;; timestamp (i'm not sure if i like this mixture of data and
-      ;; programming).
-      "UPDATE auth SET hash = ?, salt = ? WHERE user = ? AND role = ?")))
+      "INSERT OR REPLACE INTO auth (user, salt, role, hash) VALUES(?, ?, ?, ?)")))
 
  (define (delete connection user role)
    (sqlite3:call-with-temporary-statements

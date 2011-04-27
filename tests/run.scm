@@ -7,18 +7,55 @@
 (require-library auth)
 (import (prefix auth auth:))
 
-(test-group
- "auth"
- (let ((database (create-temporary-file ".db")))
-   (test
-    "load initial database"
-    0
-    (system (format "sqlite3 ~a < ~a"
-                    database
-                    (make-pathname (chicken-home) "auth.sql"))))
-   (call-with-sqlite3-connection
-    database
-    (lambda (connection)
+(let ((database (create-temporary-file ".db")))
+  (test
+   "load initial database"
+   0
+   (system (format "sqlite3 ~a < ~a"
+                   database
+                   (make-pathname (chicken-home) "auth.sql"))))
+  (call-with-sqlite3-connection
+   database
+   (lambda (connection)
+     (test-group
+      "create-or-update"
+      (test-assert
+       "create"
+       (condition-case
+        (auth:create-or-update
+         connection
+         "create-or-update-user"
+         "create-or-update-password"
+         "create-or-update-role")
+        ((exn) #f)))
+
+      (test-assert
+       "creation valid?"
+       (auth:valid?
+        connection
+        "create-or-update-user"
+        "create-or-update-password"
+        "create-or-update-role"))
+
+      (test-assert
+       "update"
+       (condition-case
+        (auth:create-or-update
+         connection
+         "create-or-update-user"
+         "create-or-update-password2"
+         "create-or-update-role")))
+
+      (test-assert
+       "update valid?"
+       (auth:valid?
+        connection
+        "create-or-update-user"
+        "create-or-update-password2"
+        "create-or-update-role")))
+
+     (test-group
+      "timestamp"
       (let ((local-timestamp
              (string->number (date->string (current-date) "~s")))
             (sleep-seconds 2))

@@ -1,5 +1,39 @@
 # -*- mode: org; -*-
 * TODO add some kind of unique constraint on the usernames
+  let's add a composite primary key for user and role; then i can do
+  an [[http://www.sqlite.org/lang_conflict.html][ON CONFLICT REPLACE]] when adding. that means, though, that there's
+  some kind of add-or-replace semantics; what needs update, then?
+
+  yeah, ~create~ and ~update~ might be replaced by ~insert-or-replace~
+  (with appropriate aliases, maybe).
+
+  #+BEGIN_SRC sqlite :tangle add-user-role-primary-key.sql
+    CREATE TEMPORARY TABLE add_user_role_pk (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           user TEXT KEY,
+           salt TEXT,
+           role TEXT,
+           hash TEXT,
+           timestamp INTEGER DEFAULT (strftime('%s', 'now'))
+    );
+    INSERT INTO add_user_role_pk SELECT * FROM auth;
+    
+    DROP TABLE IF EXISTS auth;
+    CREATE TABLE auth (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           user TEXT NOT NULL,
+           salt TEXT NOT NULL,
+           role TEXT NOT NULL,
+           hash TEXT NOT NULL,
+           timestamp INTEGER DEFAULT (strftime('%s', 'now')),
+           -- This constraint is not violated when either user or role are
+           -- null; therefore, NOT NULL supra.
+           UNIQUE (user, role)
+    );
+    
+    INSERT OR IGNORE INTO auth SELECT * FROM add_user_role_pk;
+    
+  #+END_SRC
 * DONE yes, the database is itself a "realm"?
   CLOSED: [2011-04-05 Tue 17:54]
   and that's how we'd handle multiple users with identical names?
