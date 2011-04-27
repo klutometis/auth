@@ -1,5 +1,9 @@
 # -*- mode: org; -*-
-* TODO add some kind of unique constraint on the usernames
+* DONE add some kind of unique constraint on the usernames
+  CLOSED: [2011-04-27 Wed 16:28]
+  - CLOSING NOTE [2011-04-27 Wed 16:29] \\
+    unique composite key on (user, role); depends upon user and role
+    having a ~NOT NULL~ constraint.
   let's add a composite primary key for user and role; then i can do
   an [[http://www.sqlite.org/lang_conflict.html][ON CONFLICT REPLACE]] when adding. that means, though, that there's
   some kind of add-or-replace semantics; what needs update, then?
