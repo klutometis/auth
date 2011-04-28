@@ -35,6 +35,12 @@
            UNIQUE (user, role)
     );
     
+    CREATE TRIGGER update_timestamp INSERT ON auth
+        BEGIN
+           UPDATE auth SET timestamp = strftime('%s', 'now')
+           WHERE rowid = new.rowid;
+        END;
+    
     INSERT OR IGNORE INTO auth SELECT * FROM add_user_role_pk;
     
   #+END_SRC

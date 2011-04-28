@@ -5,7 +5,6 @@
   valid?
   update
   delete
-  role
   timestamp
   create-or-update)
 
@@ -44,10 +43,6 @@
     connection
     "SELECT salt, hash FROM auth WHERE user = ? AND role = ?;"))
 
- (define create create-or-update)
-
- (define update create-or-update)
-
  (define (create-or-update connection user password role)
    (let* ((salt (salt))
           (hash (hash password salt)))
@@ -57,6 +52,10 @@
       connection
       "INSERT OR REPLACE INTO auth (user, salt, role, hash) VALUES(?, ?, ?, ?)")))
 
+ (define create create-or-update)
+
+ (define update create-or-update)
+
  (define (delete connection user role)
    (sqlite3:call-with-temporary-statements
     (lambda (delete)
@@ -64,20 +63,11 @@
     connection
     "DELETE FROM auth WHERE user = ? AND role = ?;"))
 
- (define (role connection user)
+ (define (timestamp connection user role)
    (sqlite3:call-with-temporary-statements
-    (lambda (role)
+    (lambda (timestamp)
       (condition-case
-       (sqlite3:first-result role user)
+       (sqlite3:first-result timestamp user role)
        ((exn sqlite3) #f)))
     connection
-    "SELECT role FROM auth WHERE user = ?;"))
-
- (define (timestamp connection user)
-   (sqlite3:call-with-temporary-statements
-    (lambda (role)
-      (condition-case
-       (sqlite3:first-result role user)
-       ((exn sqlite3) #f)))
-    connection
-    "SELECT timestamp FROM auth WHERE user = ?;")))
+    "SELECT timestamp FROM auth WHERE user = ? AND role = ?;")))

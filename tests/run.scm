@@ -70,7 +70,7 @@
         (test
          "user timestamp matches local timestamp"
          local-timestamp
-         (auth:timestamp connection "test"))
+         (auth:timestamp connection "test" "test"))
 
         (sleep sleep-seconds)
 
@@ -84,7 +84,7 @@
          (format
           "user timestamp is at least ~a seconds greater than local timestamp"
           sleep-seconds)
-         (>= (- (auth:timestamp connection "test")
+         (>= (- (auth:timestamp connection "test" "test")
                 local-timestamp)
              sleep-seconds)))))))
 
