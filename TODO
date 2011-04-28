@@ -35,7 +35,16 @@
            UNIQUE (user, role)
     );
     
-    CREATE TRIGGER update_timestamp INSERT ON auth
+    -- create-or-update triggers INSERT not UPDATE.
+    CREATE TRIGGER insert_timestamp INSERT ON auth
+        BEGIN
+           UPDATE auth SET timestamp = strftime('%s', 'now')
+           WHERE rowid = new.rowid;
+        END;
+    
+    -- putting this here, even the insert_timestamp is the relevant
+    -- trigger for create-or-update.
+    CREATE TRIGGER update_timestamp UPDATE ON auth
         BEGIN
            UPDATE auth SET timestamp = strftime('%s', 'now')
            WHERE rowid = new.rowid;
